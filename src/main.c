@@ -668,14 +668,15 @@ void hm_recv(struct conn_client_s *cs, const char *buf, const int len)
             client_login(cs, buf + 12, len - 12);
             return;
         } else if(service == hsmap[i].service && method == hsmap[i].method && token == hsmap[i].token) {
+            hm_log(LOG_DEBUG, &l, "Hsmap iter: %d", i);
             hsmap[i].reply(cs, buf, len);
             return;
         } else if(service == hsmap[i].service && token1 == hsmap[i].token) {
+            hm_log(LOG_DEBUG, &l, "Hsmap iter: %d", i);
             hsmap[i].reply(cs, buf, len);
             return;
-
         } else {
-            hm_log(LOG_DEBUG, &l, "Ignoring:  %d %d %d %d %d %d", service, hsmap[i].service, method, hsmap[i].method, token, hsmap[i].token);
+            //hm_log(LOG_DEBUG, &l, "Ignoring:  %d %d %d %d %d %d", service, hsmap[i].service, method, hsmap[i].method, token, hsmap[i].token);
         }
     }
 }
