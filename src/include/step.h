@@ -122,7 +122,7 @@ int step22_7(char *dst, int ndst);
 int step22_8(char *dst, int ndst);
 
 int step22_9_1(char *dst, int ndst, int iplen);
-int step22_9_2(char *dst, int ndst);
+int step22_9_2(char *dst, int ndst, int port);
 int step22_9_ip(char *dst, int ndst, const char *ip, const int iplen);
 
 #endif

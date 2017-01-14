@@ -44,6 +44,7 @@ static struct ev_loop *loop;
 
 char ip[32];
 int iplen = 0;
+int gameserver_port = 0;
 
 void dump_binary(char *buf, int len)
 {
@@ -549,7 +550,7 @@ void start_game(struct conn_client_s *p1, struct conn_client_s *p2, const int ga
     t += step22_8(out + t, sizeof(buf2) - t);
     t += step22_9_1(out + t, sizeof(buf2) - t, iplen);
     t += step22_9_ip(out + t, sizeof(buf2) - t, ip, iplen);
-    t += step22_9_2(out + t, sizeof(buf2) - t);
+    t += step22_9_2(out + t, sizeof(buf2) - t, gameserver_port);
 
     t = 0;
     out = buf2;
@@ -564,7 +565,7 @@ void start_game(struct conn_client_s *p1, struct conn_client_s *p2, const int ga
     t += step22_8(out + t, sizeof(buf2) - t);
     t += step22_9_1(out + t, sizeof(buf2) - t, iplen);
     t += step22_9_ip(out + t, sizeof(buf2) - t, ip, iplen);
-    t += step22_9_2(out + t, sizeof(buf2) - t);
+    t += step22_9_2(out + t, sizeof(buf2) - t, gameserver_port);
 
     memcpy(buf1 + 1343 + (iplen - 14), p1->token, p1->ntoken);
     memcpy(buf2 + 1343 + (iplen - 14), p2->token, p2->ntoken);
@@ -792,9 +793,17 @@ int main(int argc, char **argv)
             snprintf(ip, sizeof(ip), "%s", argv[i] + 13);
             iplen = strlen(ip);
         }
+
+        if(strlen(argv[i]) > 18 && memcmp(argv[i], "--gameserver_port=", 18) == 0) {
+            char gp[32];
+            snprintf(gp, sizeof(gp), "%s", argv[i] + 18);
+            gameserver_port = atoi(gp);
+        }
     }
 
     assert(iplen != 0);
+    // gameserver port number must occupy exactly 2 protobuf bytes
+    assert(gameserver_port > (1 << 10) && gameserver_port < (1 << 14));
 
     if(daemon == 0) {
         hm_log_open(&l, NULL, LOG_DEBUG);
@@ -802,7 +811,7 @@ int main(int argc, char **argv)
         daemonize();
     }
 
-    hm_log(LOG_DEBUG, &l, "Associated with gameserver [%s]%d", ip, iplen);
+    hm_log(LOG_DEBUG, &l, "Associated with gameserver [%s:%d]", ip, gameserver_port);
 
     loop = ev_default_loop(0);
     pool = hm_create_pool(&l);
