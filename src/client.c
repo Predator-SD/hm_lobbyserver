@@ -25,6 +25,7 @@
 #define HM_LOBBYSERVER
 
 #include <hmbase.h>
+#include <mods.h>
 
 #include <client.h>
 
@@ -38,6 +39,8 @@ void login_reply(struct conn_client_s *cs, int error)
     json_object_object_add(obj, "type", json_object_new_int(CLIENT_LOGIN));
     json_object_object_add(obj, "error", json_object_new_int(error));
     json_object_object_add(obj, "secret", json_object_new_string(cs->login.secret));
+    json_object_object_add(obj, "mod_name", json_object_new_string(MOD_NAME));
+    json_object_object_add(obj, "mod_url", json_object_new_string(MOD_URL));
     const char *str = json_object_get_string(obj);
 
     hm_send(cs, str, strlen(str));
@@ -96,9 +99,9 @@ void client_login_2(struct cbop_s *cbop)
                         cbop->data = cs;
 
                         char k1[128];
-                        snprintf(k1, sizeof(k1), "u:deck_%s", cs->login.secret);
-                        CBGQ_V0(0, k1, strlen(k1), client_login_3, 0, 0)
-                            return;
+                        snprintf(k1, sizeof(k1), "u:deck_%s_%s", MOD_URL, cs->login.secret);
+                        CBGQ_V0(0, k1, strlen(k1), client_login_3, 0, 0);
+                        return;
                     } else {
                         hm_log(LOG_DEBUG, cs->log, "{Client}: passwords do not match %s %s", cs->login.pass, v);
                         free(cbop);
@@ -161,8 +164,8 @@ void client_login(struct conn_client_s *cs, const char *buf, int len)
     cbop = malloc(sizeof(*cbop));
     memset(cbop, 0, sizeof(*cbop));
     cbop->data = cs;
-    CBGQ_V0(0, k, strlen(k), client_login_2, 0, 0)
+    CBGQ_V0(0, k, strlen(k), client_login_2, 0, 0);
 
-        json_object_put(obj);
+    json_object_put(obj);
     json_tokener_free(tok);
 }
